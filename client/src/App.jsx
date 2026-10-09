@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
 ArrowDownRight,
 ArrowRight,
@@ -11,55 +11,62 @@ LockKeyhole,
 Menu,
 ShieldCheck,
 Sparkles,
-X
-} from 'lucide-react';
+X,
+} from "lucide-react";
+
+import { apiPost } from "./api";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Dashboard from "./pages/Dashboard";
 
 const features = [
 {
 icon: LockKeyhole,
-number: '01',
-title: 'A home for your credentials',
+number: "01",
+title: "A home for your credentials",
 description:
-'Bring your login details together in one organized place instead of searching through scattered notes and browser tabs.'
+"Bring your login details together in one organized place instead of searching through scattered notes and browser tabs.",
 },
 {
 icon: KeyRound,
-number: '02',
-title: 'Stronger passwords, less effort',
+number: "02",
+title: "Stronger passwords, less effort",
 description:
-'Create a dedicated password generator experience with customizable options for different account requirements.'
+"Create a dedicated password generator experience with customizable options for different account requirements.",
 },
 {
 icon: Fingerprint,
-number: '03',
-title: 'Security built into the design',
+number: "03",
+title: "Security built into the design",
 description:
-'Develop account protection, carefully designed access controls, and a vault encryption system as core parts of the product.'
-}
+"Develop account protection, carefully designed access controls, and a vault encryption system as core parts of the product.",
+},
 ];
 
 const previewEntries = [
 {
-initials: 'G',
-name: 'Google',
-username: 'alex@example.com',
-category: 'Personal',
-iconClass: 'entry-google'
+initials: "G",
+name: "Google",
+username: "alex@example.com",
+category: "Personal",
+iconClass: "entry-google",
 },
 {
-initials: 'G',
-name: 'GitHub',
-username: 'developer@example.com',
-category: 'Development',
-iconClass: 'entry-github'
+initials: "G",
+name: "GitHub",
+username: "developer@example.com",
+category: "Development",
+iconClass: "entry-github",
 },
 {
-initials: 'N',
-name: 'Netflix',
-username: 'viewer@example.com',
-category: 'Entertainment',
-iconClass: 'entry-netflix'
-}
+initials: "N",
+name: "Netflix",
+username: "viewer@example.com",
+category: "Entertainment",
+iconClass: "entry-netflix",
+},
 ];
 
 function Logo() {
@@ -103,7 +110,9 @@ return (
 
       <div className="vault-overview-copy">
         <span>Saved accounts</span>
-        <strong>03 <span>sample entries</span></strong>
+        <strong>
+          03 <span>sample entries</span>
+        </strong>
       </div>
 
       <div className="vault-sparkle" aria-hidden="true">
@@ -112,7 +121,9 @@ return (
     </div>
 
     <div className="vault-search">
-      <span className="search-symbol" aria-hidden="true">⌕</span>
+      <span className="search-symbol" aria-hidden="true">
+        ⌕
+      </span>
       <span>Find an account...</span>
       <span className="search-shortcut">⌘ K</span>
     </div>
@@ -209,10 +220,18 @@ return (
 );
 }
 
-export default function App() {
+function HomePage({ onNavigate }) {
 const [menuOpen, setMenuOpen] = useState(false);
 
-const closeMenu = () => setMenuOpen(false);
+function closeMenu() {
+setMenuOpen(false);
+}
+
+function navigateTo(page) {
+closeMenu();
+onNavigate(page);
+window.scrollTo({ top: 0, behavior: "auto" });
+}
 
 return (
 <div className="site-shell" id="home">
@@ -224,7 +243,9 @@ return (
         type="button"
         className="mobile-menu-button"
         onClick={() => setMenuOpen((open) => !open)}
-        aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        aria-label={
+          menuOpen ? "Close navigation menu" : "Open navigation menu"
+        }
         aria-expanded={menuOpen}
         aria-controls="main-navigation"
       >
@@ -232,20 +253,43 @@ return (
       </button>
 
       <nav
-        className={`main-navigation ${menuOpen ? 'navigation-open' : ''}`}
+        className={`main-navigation ${
+          menuOpen ? "navigation-open" : ""
+        }`}
         id="main-navigation"
         aria-label="Main navigation"
       >
-        <a href="#home" onClick={closeMenu}>Home</a>
-        <a href="#features" onClick={closeMenu}>Features</a>
-        <a href="#approach" onClick={closeMenu}>Our approach</a>
+        <a href="#home" onClick={closeMenu}>
+          Home
+        </a>
+
+        <a href="#features" onClick={closeMenu}>
+          Features
+        </a>
+
+        <a href="#approach" onClick={closeMenu}>
+          Our approach
+        </a>
 
         <a
-          href="#get-started"
-          className="nav-cta"
-          onClick={closeMenu}
+          href="#login"
+          onClick={(event) => {
+            event.preventDefault();
+            navigateTo("login");
+          }}
         >
-          Explore KeyCrove
+          Log in
+        </a>
+
+        <a
+          href="#signup"
+          className="nav-cta"
+          onClick={(event) => {
+            event.preventDefault();
+            navigateTo("signup");
+          }}
+        >
+          Get started
           <ArrowUpRight size={16} />
         </a>
       </nav>
@@ -278,10 +322,14 @@ return (
           </p>
 
           <div className="hero-actions">
-            <a href="#features" className="button button-primary">
-              Discover KeyCrove
+            <button
+              type="button"
+              className="button button-primary"
+              onClick={() => navigateTo("signup")}
+            >
+              Get started
               <ArrowRight size={17} />
-            </a>
+            </button>
 
             <a href="#approach" className="button button-secondary">
               Our security approach
@@ -424,15 +472,19 @@ return (
         from the interface to the security architecture behind it.
       </p>
 
-      <a href="#home" className="button button-primary closing-button">
-        Back to the beginning
+      <button
+        type="button"
+        className="button button-primary closing-button"
+        onClick={() => navigateTo("signup")}
+      >
+        Create your account
         <ArrowUpRight size={17} />
-      </a>
+      </button>
 
       <span className="closing-note">
-        This interface is an early development version. Account
-        registration, vault storage, and encryption have not yet been
-        connected.
+        KeyCrove is under development. Account registration, secure vault
+        storage, and encryption must be connected and tested before the
+        service is ready for real credentials.
       </span>
     </section>
   </main>
@@ -453,6 +505,14 @@ return (
         <a href="#home">Home</a>
         <a href="#features">Features</a>
         <a href="#approach">Security approach</a>
+
+        <button type="button" onClick={() => navigateTo("login")}>
+          Log in
+        </button>
+
+        <button type="button" onClick={() => navigateTo("signup")}>
+          Create an account
+        </button>
       </div>
 
       <div className="footer-note">
@@ -473,4 +533,70 @@ return (
 </div>
 
 );
+}
+
+export default function App() {
+const [view, setView] = useState(() => {
+const params = new URLSearchParams(window.location.search);
+
+if (params.has("token")) {
+  return "reset-password";
+}
+
+return "home";
+
+});
+
+function navigateTo(page) {
+setView(page);
+window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+async function handleLogout() {
+try {
+await apiPost("/api/auth/logout", {});
+} catch {
+// The backend logout endpoint will be implemented with authentication.
+// The interface must not claim that a server session was revoked here.
+} finally {
+navigateTo("login");
+}
+}
+
+if (view === "login") {
+return (
+<Login
+onLogin={() => navigateTo("dashboard")}
+onNavigate={navigateTo}
+/>
+);
+}
+
+if (view === "signup") {
+return (
+<Signup
+onSignup={() => navigateTo("login")}
+onNavigate={navigateTo}
+/>
+);
+}
+
+if (view === "forgot-password") {
+return <ForgotPassword onNavigate={navigateTo} />;
+}
+
+if (view === "reset-password") {
+return <ResetPassword onNavigate={navigateTo} />;
+}
+
+if (view === "dashboard") {
+return (
+<Dashboard
+onLogout={handleLogout}
+onNavigate={navigateTo}
+/>
+);
+}
+
+return <HomePage onNavigate={navigateTo} />;
 }
