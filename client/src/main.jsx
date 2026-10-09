@@ -1,0 +1,18 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.jsx';
+import './styles.css';
+
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+throw new Error(
+'KeyCrove could not start because the root HTML element was not found.'
+);
+}
+
+createRoot(rootElement).render(
+<React.StrictMode>
+<App />
+</React.StrictMode>
+);
