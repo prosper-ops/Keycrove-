@@ -105,7 +105,7 @@ if (normalizedName.length > 100) {
 
 if (password.length < 8) {
   setError(
-    "For better protection, choose a master password with at least 12 characters."
+    "For better protection, choose a master password with at least 8 characters."
   );
   return;
 }
