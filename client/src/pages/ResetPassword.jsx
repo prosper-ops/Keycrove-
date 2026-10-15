@@ -34,8 +34,8 @@ if (!token) {
   return;
 }
 
-if (password.length < 12) {
-  setError("Your new password must contain at least 12 characters.");
+if (password.length < 8) {
+  setError("Your new password must contain at least 8 characters.");
   return;
 }
 
@@ -123,11 +123,11 @@ Back to login
                 id="new-password"
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="At least 12 characters"
+                placeholder="At least 8 characters"
                 autoComplete="new-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                minLength={12}
+                minLength={8}
                 maxLength={128}
                 required
                 disabled={loading}
