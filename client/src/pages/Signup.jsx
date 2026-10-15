@@ -43,7 +43,7 @@ level: 0,
 
 let score = 0;
 
-if (value.length >= 12) score += 1;
+if (value.length >= 8) score += 1;
 if (/[a-z]/.test(value) && /[A-Z]/.test(value)) score += 1;
 if (/\d/.test(value)) score += 1;
 if (/[^A-Za-z0-9]/.test(value)) score += 1;
@@ -103,7 +103,7 @@ if (normalizedName.length > 100) {
   return;
 }
 
-if (password.length < 12) {
+if (password.length < 8) {
   setError(
     "For better protection, choose a master password with at least 12 characters."
   );
@@ -260,7 +260,7 @@ aria-label="KeyCrove home"
             id="signup-password"
             name="password"
             type={showPassword ? "text" : "password"}
-            placeholder="At least 12 characters"
+            placeholder="At least 8 characters"
             value={password}
             onChange={(event) => {
               setPassword(event.target.value);
@@ -268,7 +268,7 @@ aria-label="KeyCrove home"
               setSuccessMessage("");
             }}
             autoComplete="new-password"
-            minLength={12}
+            minLength={8}
             maxLength={128}
             required
             disabled={loading}
