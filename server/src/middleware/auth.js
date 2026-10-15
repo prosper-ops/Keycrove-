@@ -1,12 +1,22 @@
 /**
- * KeyCrove authentication middleware.
+ * KEYCROVE AUTHENTICATION MIDDLEWARE
  *
- * This middleware protects private API routes by checking
- * whether the request has an authenticated server-side session.
+ * This file protects private API endpoints.
  *
- * It depends on express-session being configured in server.js.
+ * It checks the server-side login session before allowing
+ * a request to access protected resources.
+ *
+ * IMPORTANT:
+ * This middleware depends on express-session being
+ * configured in server/src/server.js.
  */
 
+/**
+ * Require an authenticated user.
+ *
+ * If the user is not logged in, return HTTP 401.
+ * Otherwise, continue to the requested route.
+ */
 export function requireAuth(req, res, next) {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({
@@ -18,17 +28,16 @@ export function requireAuth(req, res, next) {
     });
   }
 
-  next();
+  return next();
 }
 
 /**
- * Attach the authenticated user's ID to the request.
- *
- * Route handlers can use req.user.id to identify the current user.
- * The ID comes from the server-side session, not from a client-
- * supplied user ID.
+ * Attach the authenticated user's ID to req.user.
  *
  * This middleware must run after requireAuth.
+ *
+ * The user ID comes from the server-side session,
+ * not from a user ID supplied in the request body.
  */
 export function attachCurrentUser(req, res, next) {
   if (!req.session || !req.session.userId) {
@@ -45,12 +54,18 @@ export function attachCurrentUser(req, res, next) {
     id: req.session.userId,
   };
 
-  next();
+  return next();
 }
 
 /**
- * Reject requests when the session is missing or has expired.
+ * Alternative name for the authentication middleware.
  *
- * This alias makes route definitions easier to read.
+ * This allows routes to use either:
+ *
+ * requireAuth
+ *
+ * or:
+ *
+ * requireAuthenticatedUser
  */
 export const requireAuthenticatedUser = requireAuth;
