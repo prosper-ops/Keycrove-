@@ -5,6 +5,7 @@
  * and the KeyCrove backend.
  *
  * Features:
+ * - Supports local development and production
  * - Configurable backend URL
  * - JSON request and response handling
  * - Cookie-based session authentication
@@ -13,8 +14,21 @@
  * - No authentication tokens stored in localStorage
  */
 
+const configuredApiUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+
+/**
+ * When VITE_API_BASE_URL is configured, use it.
+ *
+ * When it is not configured:
+ * - Development uses the local Express backend.
+ * - Production uses the same-origin /api path.
+ *
+ * This production fallback assumes Vercel is configured
+ * to route /api requests to the backend service.
+ */
 const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"
+  configuredApiUrl ||
+  (import.meta.env.DEV ? "http://localhost:4000" : "")
 ).replace(/\/+$/, "");
 
 /**
@@ -32,22 +46,9 @@ export class ApiError extends Error {
 
 /**
  * Extract a useful message from the backend response.
- *
- * Supports responses such as:
- * { message: "Something went wrong" }
- *
- * And:
- * {
- *   error: {
- *     message: "Please log in to continue."
- *   }
- * }
  */
 function getErrorMessage(responseData, status) {
-  if (
-    responseData &&
-    typeof responseData === "object"
-  ) {
+  if (responseData && typeof responseData === "object") {
     if (
       responseData.error &&
       typeof responseData.error.message === "string"
@@ -92,9 +93,7 @@ export async function apiRequest(path, options = {}) {
   } = options;
 
   if (typeof path !== "string" || !path.trim()) {
-    throw new TypeError(
-      "An API endpoint must be provided."
-    );
+    throw new TypeError("An API endpoint must be provided.");
   }
 
   const normalizedPath = path.startsWith("/")
@@ -149,9 +148,6 @@ export async function apiRequest(path, options = {}) {
       headers: requestHeaders,
       body: requestBody,
       signal,
-
-      // Required for cookie-based login sessions,
-      // including supported cross-origin deployments.
       credentials: "include",
     });
   } catch (error) {
