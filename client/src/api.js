@@ -1,15 +1,15 @@
 /**
- * KeyCrove API Client
- * -------------------
- * Centralized communication between the frontend
+ * KEYCROVE API CLIENT
+ * --------------------------------------------------
+ * Central communication layer between the frontend
  * and the KeyCrove backend.
  *
  * Features:
  * - Configurable backend URL
  * - JSON request and response handling
- * - Cookie-based session support
+ * - Cookie-based session authentication
  * - Consistent error handling
- * - Support for JSON and FormData
+ * - Support for FormData and binary request bodies
  * - No authentication tokens stored in localStorage
  */
 
@@ -17,6 +17,9 @@ const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"
 ).replace(/\/+$/, "");
 
+/**
+ * Standardized API error.
+ */
 export class ApiError extends Error {
   constructor(message, status = 0, details = null) {
     super(message);
@@ -28,13 +31,57 @@ export class ApiError extends Error {
 }
 
 /**
- * Sends an HTTP request to the KeyCrove backend.
+ * Extract a useful message from the backend response.
  *
- * @param {string} path - API endpoint, such as "/api/auth/login".
- * @param {object} options - Fetch options and request configuration.
- * @returns {Promise<unknown>} The response returned by the server.
+ * Supports responses such as:
+ * { message: "Something went wrong" }
+ *
+ * And:
+ * {
+ *   error: {
+ *     message: "Please log in to continue."
+ *   }
+ * }
  */
+function getErrorMessage(responseData, status) {
+  if (
+    responseData &&
+    typeof responseData === "object"
+  ) {
+    if (
+      responseData.error &&
+      typeof responseData.error.message === "string"
+    ) {
+      return responseData.error.message;
+    }
 
+    if (typeof responseData.message === "string") {
+      return responseData.message;
+    }
+  }
+
+  const fallbackMessages = {
+    400: "Please check the information you entered.",
+    401: "Please log in to continue.",
+    403: "You do not have permission to perform this action.",
+    404: "The requested resource could not be found.",
+    409: "This request conflicts with existing information.",
+    413: "The submitted information is too large.",
+    429: "Too many requests. Please wait and try again.",
+    500: "A server error occurred. Please try again later.",
+    502: "The service is temporarily unavailable.",
+    503: "The service is temporarily unavailable.",
+  };
+
+  return (
+    fallbackMessages[status] ||
+    `The request failed with status ${status}.`
+  );
+}
+
+/**
+ * Send a request to the KeyCrove backend.
+ */
 export async function apiRequest(path, options = {}) {
   const {
     method = "GET",
@@ -43,6 +90,12 @@ export async function apiRequest(path, options = {}) {
     signal,
     ...fetchOptions
   } = options;
+
+  if (typeof path !== "string" || !path.trim()) {
+    throw new TypeError(
+      "An API endpoint must be provided."
+    );
+  }
 
   const normalizedPath = path.startsWith("/")
     ? path
@@ -55,11 +108,19 @@ export async function apiRequest(path, options = {}) {
   let requestBody;
 
   if (body !== undefined && body !== null) {
-    if (
-      body instanceof FormData ||
-      body instanceof Blob ||
-      body instanceof ArrayBuffer
-    ) {
+    const isFormData =
+      typeof FormData !== "undefined" &&
+      body instanceof FormData;
+
+    const isBlob =
+      typeof Blob !== "undefined" &&
+      body instanceof Blob;
+
+    const isArrayBuffer =
+      typeof ArrayBuffer !== "undefined" &&
+      body instanceof ArrayBuffer;
+
+    if (isFormData || isBlob || isArrayBuffer) {
       requestBody = body;
     } else if (typeof body === "string") {
       requestBody = body;
@@ -67,7 +128,10 @@ export async function apiRequest(path, options = {}) {
       requestBody = JSON.stringify(body);
 
       if (!requestHeaders.has("Content-Type")) {
-        requestHeaders.set("Content-Type", "application/json");
+        requestHeaders.set(
+          "Content-Type",
+          "application/json"
+        );
       }
     }
   }
@@ -86,11 +150,12 @@ export async function apiRequest(path, options = {}) {
       body: requestBody,
       signal,
 
-      // Allows the browser to send and receive session cookies.
+      // Required for cookie-based login sessions,
+      // including supported cross-origin deployments.
       credentials: "include",
     });
   } catch (error) {
-    if (error.name === "AbortError") {
+    if (error?.name === "AbortError") {
       throw error;
     }
 
@@ -99,7 +164,8 @@ export async function apiRequest(path, options = {}) {
     );
   }
 
-  const contentType = response.headers.get("content-type") || "";
+  const contentType =
+    response.headers.get("content-type") || "";
 
   let responseData = null;
 
@@ -116,19 +182,8 @@ export async function apiRequest(path, options = {}) {
   }
 
   if (!response.ok) {
-    const serverMessage =
-      responseData &&
-      typeof responseData === "object" &&
-      typeof responseData.message === "string"
-        ? responseData.message
-        : null;
-
-    const message =
-      serverMessage ||
-      `The request failed with status ${response.status}.`;
-
     throw new ApiError(
-      message,
+      getErrorMessage(responseData, response.status),
       response.status,
       responseData
     );
@@ -138,9 +193,8 @@ export async function apiRequest(path, options = {}) {
 }
 
 /**
- * Sends a GET request.
+ * GET request.
  */
-
 export function apiGet(path, options = {}) {
   return apiRequest(path, {
     ...options,
@@ -149,9 +203,8 @@ export function apiGet(path, options = {}) {
 }
 
 /**
- * Sends a POST request.
+ * POST request.
  */
-
 export function apiPost(path, body, options = {}) {
   return apiRequest(path, {
     ...options,
@@ -161,9 +214,8 @@ export function apiPost(path, body, options = {}) {
 }
 
 /**
- * Sends a PUT request.
+ * PUT request.
  */
-
 export function apiPut(path, body, options = {}) {
   return apiRequest(path, {
     ...options,
@@ -173,9 +225,8 @@ export function apiPut(path, body, options = {}) {
 }
 
 /**
- * Sends a PATCH request.
+ * PATCH request.
  */
-
 export function apiPatch(path, body, options = {}) {
   return apiRequest(path, {
     ...options,
@@ -185,9 +236,8 @@ export function apiPatch(path, body, options = {}) {
 }
 
 /**
- * Sends a DELETE request.
+ * DELETE request.
  */
-
 export function apiDelete(path, options = {}) {
   return apiRequest(path, {
     ...options,
@@ -195,6 +245,9 @@ export function apiDelete(path, options = {}) {
   });
 }
 
+/**
+ * Convenient default API object.
+ */
 const api = {
   request: apiRequest,
   get: apiGet,
