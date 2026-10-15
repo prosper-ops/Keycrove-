@@ -233,8 +233,11 @@ try {
 
 async function copyToClipboard(value, id, label) {
 if (!value) {
-showToast("No ${label.toLowerCase()} is available to copy.", "warning");
-return;
+  showToast(
+    `No ${label.toLowerCase()} is available to copy.`,
+    "warning"
+  );
+  return;
 }
 
 try {
